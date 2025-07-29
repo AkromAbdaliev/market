@@ -31,3 +31,29 @@ void UsersController::get(const HttpRequestPtr& req, std::function<void (const H
             callback(res);
         });
 }
+
+void UsersController::getOne(const HttpRequestPtr& req, std::function<void (const HttpResponsePtr &)> &&callback, int userId) const 
+{
+    auto dbClient = app().getDbClient();
+    Mapper<Users> mp (dbClient);
+
+    mp.findOne
+    (
+        Criteria(Users::Cols::_id, CompareOperator::EQ, userId),
+        [callback](const Users &user)
+        {
+            Json::Value userJson = user.toJson();
+            auto res = HttpResponse::newHttpJsonResponse(userJson);
+            callback(res);
+
+        },
+        [callback](const DrogonDbException &e)
+        {
+            Json::Value error;
+            error["error"] = std::string("User not found.");
+            auto res = HttpResponse::newHttpJsonResponse(error);
+            res->setStatusCode(k404NotFound);
+            callback(res);
+        }
+    );
+}
