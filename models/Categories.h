@@ -38,6 +38,8 @@ namespace drogon_model
 {
 namespace market
 {
+class ProductCategories;
+class Products;
 
 class Categories
 {
@@ -122,6 +124,10 @@ class Categories
     std::string toString() const;
     Json::Value toMasqueradedJson(const std::vector<std::string> &pMasqueradingVector) const;
     /// Relationship interfaces
+    std::vector<std::pair<Products,ProductCategories>> getProducts(const drogon::orm::DbClientPtr &clientPtr) const;
+    void getProducts(const drogon::orm::DbClientPtr &clientPtr,
+                     const std::function<void(std::vector<std::pair<Products,ProductCategories>>)> &rcb,
+                     const drogon::orm::ExceptionCallback &ecb) const;
   private:
     friend drogon::orm::Mapper<Categories>;
     friend drogon::orm::BaseBuilder<Categories, true, true>;

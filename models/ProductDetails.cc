@@ -6,6 +6,7 @@
  */
 
 #include "ProductDetails.h"
+#include "Products.h"
 #include <drogon/utils/Utilities.h>
 #include <string>
 
@@ -629,4 +630,47 @@ bool ProductDetails::validJsonOfField(size_t index,
             return false;
     }
     return true;
+}
+Products ProductDetails::getProducts(const DbClientPtr &clientPtr) const {
+    static const std::string sql = "select * from products where detail_id = $1";
+    Result r(nullptr);
+    {
+        auto binder = *clientPtr << sql;
+        binder << *id_ << Mode::Blocking >>
+            [&r](const Result &result) { r = result; };
+        binder.exec();
+    }
+    if (r.size() == 0)
+    {
+        throw UnexpectedRows("0 rows found");
+    }
+    else if (r.size() > 1)
+    {
+        throw UnexpectedRows("Found more than one row");
+    }
+    return Products(r[0]);
+}
+
+void ProductDetails::getProducts(const DbClientPtr &clientPtr,
+                                 const std::function<void(Products)> &rcb,
+                                 const ExceptionCallback &ecb) const
+{
+    static const std::string sql = "select * from products where detail_id = $1";
+    *clientPtr << sql
+               << *id_
+               >> [rcb = std::move(rcb), ecb](const Result &r){
+                    if (r.size() == 0)
+                    {
+                        ecb(UnexpectedRows("0 rows found"));
+                    }
+                    else if (r.size() > 1)
+                    {
+                        ecb(UnexpectedRows("Found more than one row"));
+                    }
+                    else
+                    {
+                        rcb(Products(r[0]));
+                    }
+               }
+               >> ecb;
 }

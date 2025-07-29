@@ -6,6 +6,9 @@
  */
 
 #include "Products.h"
+#include "Categories.h"
+#include "ProductCategories.h"
+#include "ProductDetails.h"
 #include <drogon/utils/Utilities.h>
 #include <string>
 
@@ -794,4 +797,85 @@ bool Products::validJsonOfField(size_t index,
             return false;
     }
     return true;
+}
+ProductDetails Products::getProductDetails(const DbClientPtr &clientPtr) const {
+    static const std::string sql = "select * from product_details where id = $1";
+    Result r(nullptr);
+    {
+        auto binder = *clientPtr << sql;
+        binder << *detailId_ << Mode::Blocking >>
+            [&r](const Result &result) { r = result; };
+        binder.exec();
+    }
+    if (r.size() == 0)
+    {
+        throw UnexpectedRows("0 rows found");
+    }
+    else if (r.size() > 1)
+    {
+        throw UnexpectedRows("Found more than one row");
+    }
+    return ProductDetails(r[0]);
+}
+
+void Products::getProductDetails(const DbClientPtr &clientPtr,
+                                 const std::function<void(ProductDetails)> &rcb,
+                                 const ExceptionCallback &ecb) const
+{
+    static const std::string sql = "select * from product_details where id = $1";
+    *clientPtr << sql
+               << *detailId_
+               >> [rcb = std::move(rcb), ecb](const Result &r){
+                    if (r.size() == 0)
+                    {
+                        ecb(UnexpectedRows("0 rows found"));
+                    }
+                    else if (r.size() > 1)
+                    {
+                        ecb(UnexpectedRows("Found more than one row"));
+                    }
+                    else
+                    {
+                        rcb(ProductDetails(r[0]));
+                    }
+               }
+               >> ecb;
+}
+std::vector<std::pair<Categories,ProductCategories>> Products::getCategories(const DbClientPtr &clientPtr) const {
+    static const std::string sql = "select * from categories,product_categories where product_categories.product_id = $1 and product_categories.category_id = categories.id";
+    Result r(nullptr);
+    {
+        auto binder = *clientPtr << sql;
+        binder << *id_ << Mode::Blocking >>
+            [&r](const Result &result) { r = result; };
+        binder.exec();
+    }
+    std::vector<std::pair<Categories,ProductCategories>> ret;
+    ret.reserve(r.size());
+    for (auto const &row : r)
+    {
+        ret.emplace_back(std::pair<Categories,ProductCategories>(
+            Categories(row),ProductCategories(row,Categories::getColumnNumber())));
+    }
+    return ret;
+}
+
+void Products::getCategories(const DbClientPtr &clientPtr,
+                             const std::function<void(std::vector<std::pair<Categories,ProductCategories>>)> &rcb,
+                             const ExceptionCallback &ecb) const
+{
+    static const std::string sql = "select * from categories,product_categories where product_categories.product_id = $1 and product_categories.category_id = categories.id";
+    *clientPtr << sql
+               << *id_
+               >> [rcb = std::move(rcb)](const Result &r){
+                   std::vector<std::pair<Categories,ProductCategories>> ret;
+                   ret.reserve(r.size());
+                   for (auto const &row : r)
+                   {
+                       ret.emplace_back(std::pair<Categories,ProductCategories>(
+                           Categories(row),ProductCategories(row,Categories::getColumnNumber())));
+                   }
+                   rcb(ret);
+               }
+               >> ecb;
 }

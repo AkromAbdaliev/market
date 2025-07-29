@@ -6,6 +6,8 @@
  */
 
 #include "Categories.h"
+#include "ProductCategories.h"
+#include "Products.h"
 #include <drogon/utils/Utilities.h>
 #include <string>
 
@@ -477,4 +479,42 @@ bool Categories::validJsonOfField(size_t index,
             return false;
     }
     return true;
+}
+std::vector<std::pair<Products,ProductCategories>> Categories::getProducts(const DbClientPtr &clientPtr) const {
+    static const std::string sql = "select * from products,product_categories where product_categories.category_id = $1 and product_categories.product_id = products.id";
+    Result r(nullptr);
+    {
+        auto binder = *clientPtr << sql;
+        binder << *id_ << Mode::Blocking >>
+            [&r](const Result &result) { r = result; };
+        binder.exec();
+    }
+    std::vector<std::pair<Products,ProductCategories>> ret;
+    ret.reserve(r.size());
+    for (auto const &row : r)
+    {
+        ret.emplace_back(std::pair<Products,ProductCategories>(
+            Products(row),ProductCategories(row,Products::getColumnNumber())));
+    }
+    return ret;
+}
+
+void Categories::getProducts(const DbClientPtr &clientPtr,
+                             const std::function<void(std::vector<std::pair<Products,ProductCategories>>)> &rcb,
+                             const ExceptionCallback &ecb) const
+{
+    static const std::string sql = "select * from products,product_categories where product_categories.category_id = $1 and product_categories.product_id = products.id";
+    *clientPtr << sql
+               << *id_
+               >> [rcb = std::move(rcb)](const Result &r){
+                   std::vector<std::pair<Products,ProductCategories>> ret;
+                   ret.reserve(r.size());
+                   for (auto const &row : r)
+                   {
+                       ret.emplace_back(std::pair<Products,ProductCategories>(
+                           Products(row),ProductCategories(row,Products::getColumnNumber())));
+                   }
+                   rcb(ret);
+               }
+               >> ecb;
 }
