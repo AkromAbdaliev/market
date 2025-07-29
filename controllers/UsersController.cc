@@ -14,9 +14,20 @@ void UsersController::get(const HttpRequestPtr& req, std::function<void (const H
         (
         [callback](const std::vector<Users> &users)
         {
-            
+            Json::Value jsonUsers = Json::arrayValue;
+            for (const auto &row : users)
+            {
+                jsonUsers.append(row.toJson());
+            }
+            auto res = HttpResponse::newHttpJsonResponse(jsonUsers);;
+            callback(res);
         },
-
-        [callback](){}
-        );
+        [callback](const DrogonDbException &e)
+        {
+            Json::Value error;
+            error["error"] = std::string("Database error: ") + e.base().what();
+            auto res = HttpResponse::newHttpJsonResponse(error);
+            res->setStatusCode(k500InternalServerError);
+            callback(res);
+        });
 }
