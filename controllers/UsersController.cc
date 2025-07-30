@@ -49,7 +49,9 @@ void UsersController::getOne(const HttpRequestPtr& req, std::function<void (cons
         },
         [callback](const DrogonDbException &e)
         {
-            auto res = HttpResponse::newHttpJsonResponse({{"error", "User not found."}});
+            Json::Value error;
+            error["error"] = "User not found.";
+            auto res = HttpResponse::newHttpJsonResponse(error);
             res->setStatusCode(k404NotFound);
             callback(res);
         }
@@ -91,7 +93,7 @@ void UsersController::update(const HttpRequestPtr& req, std::function<void (cons
                     [callback](const DrogonDbException &e)
                     {
                         Json::Value failJson;
-                        failJson["error"] = "Failed to update user.";
+                        failJson["error"] = e.base().what();
                         auto res = HttpResponse::newHttpJsonResponse(failJson);
                         res->setStatusCode(k500InternalServerError);
                         callback(res);
@@ -120,3 +122,108 @@ void UsersController::update(const HttpRequestPtr& req, std::function<void (cons
     }
     
 }
+
+void UsersController::deleteOne(const HttpRequestPtr& req, std::function<void (const HttpResponsePtr &)> &&callback, int userId) const
+{
+    auto dbClient = app().getDbClient();
+    Mapper<Users> mp(dbClient);
+
+    mp.deleteBy(
+        Criteria(Users::Cols::_id, CompareOperator::EQ, userId),
+        [callback](const size_t count)
+        {
+            if (count > 0) {
+                Json::Value successJson;
+                successJson["success"] = "User has been deleted.";
+                auto res = HttpResponse::newHttpJsonResponse(successJson);
+                callback(res);
+            } else {
+                Json::Value error;
+                error["error"] = "User not found";
+                auto res = HttpResponse::newHttpJsonResponse(error);
+                res->setStatusCode(k404NotFound);
+                callback(res);
+            }
+        },
+        [callback](const DrogonDbException &e) {
+            Json::Value error;
+            error["error"] = "Database error";
+            auto res = HttpResponse::newHttpJsonResponse(error);
+            res->setStatusCode(k500InternalServerError);
+            callback(res);
+        });
+}
+
+void UsersController::create(const HttpRequestPtr& req, std::function<void (const HttpResponsePtr &)> &&callback) const
+{
+    auto dbClient = app().getDbClient();
+    Mapper<Users> mp(dbClient);
+
+    try
+    {
+        auto json = req->getJsonObject();
+        if (!json) {
+            Json::Value jsonError;
+            jsonError["error"] = "Invalid JSON";
+            auto res = HttpResponse::newHttpJsonResponse(jsonError);
+            res->setStatusCode(k400BadRequest);
+            callback(res);
+            return;
+        }
+        
+        if (!json->isMember("name") || !json->isMember("email"))
+        {
+            Json::Value jsonError;
+            jsonError["error"] = "'name' and 'email' are required.";
+            auto res = HttpResponse::newHttpJsonResponse(jsonError);
+            res->setStatusCode(k400BadRequest);
+            callback(res);
+            return;
+        }
+        
+        Users user;
+        user.setName((*json)["name"].asString());
+        user.setEmail((*json)["email"].asString());
+
+        mp.insert(user,
+            [callback](Users user)
+            {
+                Json::Value userJson;
+                userJson["id"] = user.getValueOfId();
+                userJson["name"] = user.getValueOfName();
+                userJson["email"] = user.getValueOfEmail();
+
+                auto res = HttpResponse::newHttpJsonResponse(userJson);
+                res->setStatusCode(k201Created);
+                callback(res);
+            },
+            [callback](const DrogonDbException &e)
+            {
+                Json::Value error;
+                error["error"] = e.base().what();
+                auto res = HttpResponse::newHttpJsonResponse(error);
+                res->setStatusCode(k400BadRequest);
+                callback(res);
+            }
+        );
+    }
+    catch(const std::exception& ex)
+    {
+        Json::Value error;
+        error["error"] = ex.what();
+
+        auto resp = HttpResponse::newHttpJsonResponse(error);
+        resp->setStatusCode(k400BadRequest);
+        callback(resp);
+    }
+    
+}
+
+
+
+
+
+
+
+
+
