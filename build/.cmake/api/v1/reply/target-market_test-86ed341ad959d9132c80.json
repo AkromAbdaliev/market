@@ -53,7 +53,7 @@
 			{
 				"command" : 4,
 				"file" : 3,
-				"line" : 35,
+				"line" : 30,
 				"parent" : 3
 			},
 			{
@@ -182,7 +182,7 @@
 			"compileCommandFragments" : 
 			[
 				{
-					"fragment" : "-std=c++17 -fdiagnostics-color=always"
+					"fragment" : " -fcoroutines -std=c++20"
 				}
 			],
 			"includes" : 
@@ -200,7 +200,7 @@
 				[
 					1
 				],
-				"standard" : "17"
+				"standard" : "20"
 			},
 			"sourceIndexes" : 
 			[
@@ -213,6 +213,10 @@
 	{
 		"commandFragments" : 
 		[
+			{
+				"fragment" : "-fcoroutines",
+				"role" : "flags"
+			},
 			{
 				"fragment" : "",
 				"role" : "flags"

@@ -18,51 +18,41 @@
 
     "convert": {
       "enabled": false,
-      "items":[{
-          "table": "users",
-          "column": "password",
-          "method": {
-            "after_db_read": "decrypt_password",
-            "before_db_write": "encrypt_password"
-          },
-          "includes": [
-            "\"file_local_search_path.h\"","<file_in_global_search_path.h>"
-          ]
-      }]
+      "items":[]
     },
     "relationships": {
         "enabled": true,
         "items": [{
                 "type": "has one",
-                "original_table_name": "products",
+                "original_table_name": "product",
                 "original_table_alias": "",
-                "original_key": "detail_id",
-                "target_table_name": "product_details",
+                "original_key": "id",
+                "target_table_name": "product_detail",
                 "target_table_alias": "",
-                "target_key": "id",
+                "target_key": "product_id",
                 "enable_reverse": true
             },
             {
                 "type": "has many",
-                "original_table_name": "users",
+                "original_table_name": "customer",
                 "original_table_alias": "",
                 "original_key": "id",
-                "target_table_name": "orders",
+                "target_table_name": "purchase",
                 "target_table_alias": "",
-                "target_key": "user_id",
+                "target_key": "customer_id",
                 "enable_reverse": true
             },
             {
                 "type": "many to many",
-                "original_table_name": "products",
+                "original_table_name": "product",
                 "original_table_alias": "",
                 "original_key": "id",
                 "pivot_table": {
-                    "table_name": "product_categories",
+                    "table_name": "product_category",
                     "original_key": "product_id",
                     "target_key": "category_id"
                 },
-                "target_table_name": "categories",
+                "target_table_name": "category",
                 "target_table_alias": "",
                 "target_key": "id",
                 "enable_reverse": true

@@ -88,11 +88,6 @@
 			"path" : "/usr/share/cmake-3.28/Modules/CMakeCommonLanguageInclude.cmake"
 		},
 		{
-			"isCMake" : true,
-			"isExternal" : true,
-			"path" : "/usr/share/cmake-3.28/Modules/CheckIncludeFileCXX.cmake"
-		},
-		{
 			"isExternal" : true,
 			"path" : "/usr/local/lib/cmake/Drogon/DrogonConfigVersion.cmake"
 		},

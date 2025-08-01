@@ -1,10 +1,4 @@
 #include <drogon/drogon.h>
-// #include "UsersController.h"
-// #include "OrdersController.h"
-// #include "CategoriesController.h"
-// #include "ProductsController.h"
-// #include "ProductCategoriesController.h"
-// #include "ProductDetailsController.h"
 
 int main() {
     //Set HTTP listener address and port
@@ -13,6 +7,7 @@ int main() {
     drogon::app().loadConfigFile("../config.json");
     //drogon::app().loadConfigFile("../config.yaml");
     //Run HTTP framework,the method will block in the internal event loop
+    LOG_INFO << "Server starting...";
     drogon::app().run();
     return 0;
 }

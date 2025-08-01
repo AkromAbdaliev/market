@@ -15,7 +15,8 @@
 			"set_target_properties",
 			"include",
 			"find_package",
-			"find_dependency"
+			"find_dependency",
+			"add_compile_options"
 		],
 		"files" : 
 		[
@@ -53,7 +54,7 @@
 			{
 				"command" : 4,
 				"file" : 3,
-				"line" : 35,
+				"line" : 31,
 				"parent" : 3
 			},
 			{
@@ -173,6 +174,12 @@
 				"file" : 9,
 				"line" : 16,
 				"parent" : 25
+			},
+			{
+				"command" : 6,
+				"file" : 3,
+				"line" : 10,
+				"parent" : 3
 			}
 		]
 	},
@@ -182,7 +189,11 @@
 			"compileCommandFragments" : 
 			[
 				{
-					"fragment" : "-std=c++17 -fdiagnostics-color=always"
+					"fragment" : " -fcoroutines -stdlib=libc++ -std=c++20 -fdiagnostics-color=always"
+				},
+				{
+					"backtrace" : 27,
+					"fragment" : "-fcoroutines"
 				}
 			],
 			"includes" : 
@@ -200,7 +211,7 @@
 				[
 					1
 				],
-				"standard" : "17"
+				"standard" : "20"
 			},
 			"sourceIndexes" : 
 			[
@@ -213,6 +224,10 @@
 	{
 		"commandFragments" : 
 		[
+			{
+				"fragment" : "-fcoroutines -stdlib=libc++",
+				"role" : "flags"
+			},
 			{
 				"fragment" : "",
 				"role" : "flags"
