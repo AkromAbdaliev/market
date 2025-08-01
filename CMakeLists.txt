@@ -73,6 +73,5 @@ target_sources(${PROJECT_NAME}
     ${MODEL_SRC}
 )
 
-
 # Tests
 add_subdirectory(test)

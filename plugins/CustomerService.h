@@ -1,29 +1,29 @@
-/**
- *
- *  CustomerService.h
- *
- */
-
 #pragma once
 
 #include <drogon/plugins/Plugin.h>
-#include "models/Customer.h"
-#include <drogon/utils/coroutine.h>
+#include "Customer.h"
+#include <optional>
 
+using namespace drogon;
+using namespace drogon::orm;
+using drogon_model::market::Customer;
 
 class CustomerService : public drogon::Plugin<CustomerService>
 {
-  public:
+public:
     CustomerService() {}
-    /// This method must be called by drogon to initialize and start the plugin.
-    /// It must be implemented by the user.
+
+    /// Initialize and start the plugin.
     void initAndStart(const Json::Value &config) override;
 
-    /// This method must be called by drogon to shutdown the plugin.
-    /// It must be implemented by the user.
+    /// Shutdown the plugin.
     void shutdown() override;
 
+    /// Create a new customer
+    virtual Task<Customer> createCustomer(const std::string &name, const std::string &email);
 
-    drogon::Task<drogon_model::market::Customer> createCustomer(const std::string &name, const std::string &email);
+    /// Get customer by ID (returns std::nullopt if not found)
+    virtual Task<std::optional<Customer>> getCustomer(int customerId);
+
+    virtual Task<std::vector<Customer>> getAll();
 };
-

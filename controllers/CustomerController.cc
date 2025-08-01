@@ -42,3 +42,75 @@ Task<HttpResponsePtr> CustomerController::create(HttpRequestPtr req)
         co_return resp;
     }
 }
+
+
+Task<HttpResponsePtr> CustomerController::getCustomer(HttpRequestPtr req, int customerId)
+{
+    auto customerService = app().getPlugin<CustomerService>();
+    auto customer = co_await customerService->getCustomer(customerId);
+
+    if (!customer) {
+        auto resp = HttpResponse::newHttpResponse();
+        resp->setStatusCode(k404NotFound);
+        resp->setBody("Customer not found");
+        co_return resp;
+    }
+
+    Json::Value ret;
+    ret["id"] = customer->getValueOfId();
+    ret["name"] = customer->getValueOfName();
+    ret["email"] = customer->getValueOfEmail();
+
+    auto resp = HttpResponse::newHttpJsonResponse(ret);
+    co_return resp;
+}
+
+Task<HttpResponsePtr> CustomerController::getAll(HttpRequestPtr req)
+{
+    try {
+        auto customerService = app().getPlugin<CustomerService>();
+        auto customers = co_await customerService->getAll();
+
+        Json::Value ret(Json::arrayValue);
+        for (auto& customer : customers) {
+            Json::Value item;
+            item["id"] = customer.getValueOfId();
+            item["name"] = customer.getValueOfName();
+            item["email"] = customer.getValueOfEmail();
+            ret.append(item);
+        }
+
+        auto resp = HttpResponse::newHttpJsonResponse(ret);
+        co_return resp;
+    }
+    catch (const std::exception& e) {
+        LOG_ERROR << "Error fetching customers: " << e.what();
+        auto resp = HttpResponse::newHttpResponse();
+        resp->setStatusCode(k500InternalServerError);
+        resp->setBody("Error fetching customer list");
+        co_return resp;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
