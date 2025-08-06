@@ -5,12 +5,6 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Coroutine flags for different compilers
-if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fcoroutines -stdlib=libc++")
-elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fcoroutines")
-endif()
 
 # Source files
 file(GLOB_RECURSE SOURCES
@@ -30,12 +24,9 @@ add_executable(${PROJECT_NAME} main.cc ${SOURCES} ${HEADERS})
 find_package(Drogon CONFIG REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE Drogon::Drogon)
 
-# Additional required libraries for coroutines
-if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-    target_link_libraries(${PROJECT_NAME} PRIVATE stdc++fs)
-    if(CMAKE_SYSTEM_NAME MATCHES "Linux")
-        target_link_libraries(${PROJECT_NAME} PRIVATE pthread)
-    endif()
+# Link pthread on Linux
+if(CMAKE_SYSTEM_NAME MATCHES "Linux")
+    target_link_libraries(${PROJECT_NAME} PRIVATE pthread)
 endif()
 
 # Verify C++ standard
@@ -62,6 +53,7 @@ target_include_directories(${PROJECT_NAME}
     ${CMAKE_CURRENT_SOURCE_DIR}/models
     ${CMAKE_CURRENT_SOURCE_DIR}/controllers
     ${CMAKE_CURRENT_SOURCE_DIR}/plugins
+    ${CMAKE_CURRENT_SOURCE_DIR}/utils
 )
 
 # Add sources

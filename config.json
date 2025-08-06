@@ -37,7 +37,12 @@
     "plugins":
     [
         {
-            "name" : "CustomerService"
+            "name" : "CustomerList",
+            "config": {
+                "black_list": ["Anvar", "Bahodur", "Alex"],
+                "check_timeout": 10
+            }
         }
+
     ]
 }
